@@ -1,0 +1,1 @@
+# regras especificas para analisar pacotes MQTT porta 1883

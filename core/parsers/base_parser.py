@@ -1,0 +1,1 @@
+# classe mae AnalisadorDeProtocolo (definir interface comum)

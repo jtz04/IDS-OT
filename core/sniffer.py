@@ -1,0 +1,1 @@
+# Classe RedeSniffer (captura bruta)

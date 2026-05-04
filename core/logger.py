@@ -1,0 +1,1 @@
+# Classe GerenciadorDeLogs (salvar CSV/banco de dados)

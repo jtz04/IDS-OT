@@ -1,0 +1,1 @@
+# regras especificas para analisar pacotes Modbus porta 502
