@@ -1,9 +1,8 @@
 """Ponto de entrada do IDS.
 
-Este arquivo apenas inicia e conecta as partes do sistema. A logica de captura,
-analise de protocolo e persistencia fica nas classes de `core`, porque isso
-deixa o projeto mais facil de evoluir: para adicionar outro protocolo, basta
-criar outro analisador e registra-lo em `ANALISADORES`.
+Este arquivo apenas inicia e conecta as partes do sistema. A captura principal
+do projeto monitora Modbus e MQTT ao mesmo tempo, porque o objetivo do sensor e
+observar o trafego OT/IoT completo e exportar tudo em um unico CSV.
 """
 
 import argparse
@@ -14,22 +13,17 @@ from core.parsers.mqtt_parser import AnalisadorMQTT
 from core.sniffer import RedeSniffer
 
 
-ANALISADORES = {
-    # O dicionario funciona como um pequeno "registro" de protocolos.
-    # Isso evita varios if/else espalhados pelo codigo e centraliza a escolha.
-    "modbus": AnalisadorModbus,
-    "mqtt": AnalisadorMQTT,
-}
+def criar_analisadores():
+    """Cria todos os analisadores que devem rodar simultaneamente."""
+    return [
+        AnalisadorModbus(),
+        AnalisadorMQTT(),
+    ]
 
 
-def criar_analisador(protocolo):
-    """Cria a classe correta para o protocolo escolhido na linha de comando."""
-    return ANALISADORES[protocolo]()
-
-
-def caminho_padrao_saida(protocolo):
-    """Gera um caminho de CSV padrao mantendo um arquivo por protocolo."""
-    return f"/app/logs_{protocolo}.csv"
+def caminho_padrao_saida():
+    """Gera o caminho do CSV unificado da captura IDS."""
+    return "/app/logs_ids.csv"
 
 
 def parse_args():
@@ -37,9 +31,11 @@ def parse_args():
     parser = argparse.ArgumentParser(description="Sensor IDS para trafego OT/IoT.")
     parser.add_argument(
         "--protocolo",
-        choices=ANALISADORES.keys(),
-        default="mqtt",
-        help="Protocolo que sera monitorado.",
+        default=None,
+        help=(
+            "Parametro mantido apenas por compatibilidade. "
+            "A captura sempre monitora Modbus e MQTT ao mesmo tempo."
+        ),
     )
     parser.add_argument(
         "--iface",
@@ -54,7 +50,7 @@ def parse_args():
     parser.add_argument(
         "--saida",
         default=None,
-        help="Caminho do CSV de saida. Se omitido, usa /app/logs_<protocolo>.csv.",
+        help="Caminho do CSV de saida. Se omitido, usa /app/logs_ids.csv.",
     )
     parser.add_argument(
         "--limite",
@@ -70,15 +66,15 @@ def main():
     args = parse_args()
 
     # Cada objeto tem uma responsabilidade unica:
-    # - analisador: entende o protocolo;
+    # - analisadores: entendem Modbus e MQTT;
     # - gerenciador_logs: guarda/exporta os registros;
-    # - sniffer: captura pacotes e chama os outros dois.
-    analisador = criar_analisador(args.protocolo)
-    caminho_csv = args.saida or caminho_padrao_saida(args.protocolo)
+    # - sniffer: captura pacotes uma vez e chama os parsers dos dois protocolos.
+    analisadores = criar_analisadores()
+    caminho_csv = args.saida or caminho_padrao_saida()
     gerenciador_logs = GerenciadorDeLogs(caminho_csv)
 
     sniffer = RedeSniffer(
-        analisador=analisador,
+        analisadores=analisadores,
         gerenciador_logs=gerenciador_logs,
         interface=args.iface,
         host=args.host,
