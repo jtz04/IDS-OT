@@ -1,0 +1,1 @@
+Pasta raw onde o logger vai salvar o .csv gerado

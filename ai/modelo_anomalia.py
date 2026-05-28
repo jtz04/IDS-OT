@@ -1,0 +1,1 @@
+# Carrega o modelo de detecção de anomalias treinado
