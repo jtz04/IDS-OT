@@ -1,2 +1,11 @@
-pandas
-scapy
+# Captura e decodificacao de pacotes de rede.
+# Usado pelo sniffer e pelos parsers Modbus/MQTT.
+scapy>=2.7.0
+
+# Manipulacao tabular e exportacao dos logs para CSV.
+pandas>=2.0.0
+
+# Observacao:
+# Para capturar trafego real, o Scapy tambem depende de suporte do sistema:
+# - Windows: instalar Npcap.
+# - Linux/Raspberry Pi: libpcap/tcpdump e permissao para captura de rede.
